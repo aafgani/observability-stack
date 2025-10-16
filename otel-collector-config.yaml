@@ -1,0 +1,59 @@
+extensions:
+  health_check:
+    endpoint: 0.0.0.0:13133
+
+receivers:
+  otlp:
+    protocols:
+      http:
+        endpoint: 0.0.0.0:4318
+      grpc:
+        endpoint: 0.0.0.0:4317
+
+exporters:
+  debug:
+    verbosity: detailed
+
+  prometheus:
+    endpoint: "0.0.0.0:8889" #Prometheus will pull metrics from OpenTelemetry Collector through this port
+
+  loki:
+    endpoint: http://loki:3100/loki/api/v1/push
+    default_labels_enabled:
+      exporter: true
+      job: true
+      instance: true
+      service: true
+
+#  otlphttp/logs:
+#    endpoint: "http://loki:3100/otlp"
+#    tls:
+#      insecure: true
+
+processors:
+  batch:
+  attributes:
+    actions:
+      # Tell Loki which *log attributes* to promote
+      - action: insert
+        key: loki.attribute.labels
+        value: service.name, deployment.environment, host.name
+
+  resource:
+    attributes:
+      # Tell Loki which *resource attributes* to promote
+      - action: insert
+        key: loki.resource.labels
+        value: service.name, deployment.environment, host.name
+
+service:
+  extensions: [health_check]
+  pipelines:
+    logs:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [debug, loki]
+
+    metrics:
+      receivers: [otlp]
+      exporters: [prometheus]
