@@ -14,6 +14,11 @@ exporters:
   debug:
     verbosity: detailed
 
+  otlp/tempo:
+    endpoint: tempo:4317 #Point to Tempo’s internal OTLP endpoint (4317)
+    tls:
+      insecure: true
+
   prometheus:
     endpoint: "0.0.0.0:8889" #Prometheus will pull metrics from OpenTelemetry Collector through this port
 
@@ -57,3 +62,8 @@ service:
     metrics:
       receivers: [otlp]
       exporters: [prometheus]
+
+    traces:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [otlp/tempo]
