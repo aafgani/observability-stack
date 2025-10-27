@@ -30,33 +30,33 @@ exporters:
       instance: true
       service: true
 
+
 #  otlphttp/logs:
 #    endpoint: "http://loki:3100/otlp"
 #    tls:
 #      insecure: true
 
 processors:
-  batch:
-  attributes:
+  attributes/add_resource_labels:
     actions:
       # Tell Loki which *log attributes* to promote
       - action: insert
         key: loki.attribute.labels
-        value: service.name, deployment.environment, host.name
+        value: service.name, deployment.environment, host.name, machine.name
 
-  resource:
-    attributes:
-      # Tell Loki which *resource attributes* to promote
-      - action: insert
-        key: loki.resource.labels
-        value: service.name, deployment.environment, host.name
+#  resource:
+#    attributes:
+#      # Tell Loki which *resource attributes* to promote
+#      - action: insert
+#        key: loki.resource.labels
+ #       value: service.name, deployment.environment, host.name
 
 service:
   extensions: [health_check]
   pipelines:
     logs:
       receivers: [otlp]
-      processors: [batch]
+      processors: [attributes/add_resource_labels]
       exporters: [debug, loki]
 
     metrics:
@@ -65,5 +65,5 @@ service:
 
     traces:
       receivers: [otlp]
-      processors: [batch]
+      #processors: [batch]
       exporters: [otlp/tempo]
