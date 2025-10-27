@@ -51,7 +51,7 @@ services:
     command: -config.file=/etc/loki/local-config.yaml
     volumes:
       - ./config/loki-config.yaml:/etc/loki/local-config.yaml
-      - loki-data:/tmp/loki
+      - loki-data:/loki
 
 ## traces:
   tempo:
